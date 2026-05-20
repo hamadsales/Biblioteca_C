@@ -48,8 +48,7 @@
                 const mensagem = ref('');
                 const sucesso = ref(true);
 
-                // Como ainda não fizemos a rota 'GET' no C, criei um mock visual na tela 
-                // para podermos testar o botão de exclusão que acabamos de programar.
+                // falta fazer a rota 'GET' no C
                 const livros = ref([
                     { id: 1, titulo: "Linguagem C: Completa e Descomplicada", autor: "André Backes", ano: 2012 },
                     { id: 2, titulo: "Código Limpo", autor: "Robert C. Martin", ano: 2008 },
@@ -82,8 +81,8 @@
                         console.error(error);
                     }
                     
-                    // Apaga a mensagem após 5 segundos
-                    setTimeout(() => mensagem.value = '', 5000);
+                    // Apaga a mensagem após 15 segundos
+                    setTimeout(() => mensagem.value = '', 15000);
                 };
 
                 return { livros, doarLivro, mensagem, sucesso }
