@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minha Biblioteca</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
+</head>
+<body class="bg-slate-100 min-h-screen p-8 font-sans">
+    <div id="app" class="max-w-5xl mx-auto">
+        <div class="mb-8 border-b-2 border-slate-300 pb-4">
+            <h1 class="text-3xl font-bold text-slate-800">Minha Biblioteca</h1>
+            <p class="text-slate-500">Gerenciamento de Doações - Back-end em C</p>
+        </div>
+
+        <div v-if="mensagem" class="mb-6 p-4 rounded-md font-medium transition-all" 
+             :class="sucesso ? 'bg-green-100 text-green-700 border border-green-200' : 'bg-orange-100 text-orange-700 border border-orange-200'">
+            {{ mensagem }}
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <div v-for="livro in livros" :key="livro.id" class="bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition-shadow border-l-4 border-blue-600 flex flex-col justify-between">
+                <div class="mb-6">
+                    <h2 class="text-xl font-bold text-slate-800 mb-2 leading-tight">{{ livro.titulo }}</h2>
+                    <p class="text-sm text-slate-600 mb-1"><span class="font-semibold">Autor:</span> {{ livro.autor }}</p>
+                    <p class="text-sm text-slate-600"><span class="font-semibold">Ano:</span> {{ livro.ano }}</p>
+                    <p class="text-xs text-slate-400 mt-2">ID no Banco: {{ livro.id }}</p>
+                </div>
+                
+                <button @click="doarLivro(livro.id)" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-2.5 px-4 rounded-lg transition-colors flex justify-center items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M3 3a1 1 0 011-1h12a1 1 0 011 1v3a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V3z" clip-rule="evenodd" />
+                    </svg>
+                    Doar Livro
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        const { createApp, ref } = Vue;
+
+        createApp({
+            setup() {
+                const mensagem = ref('');
+                const sucesso = ref(true);
+
+                // Como ainda não fizemos a rota 'GET' no C, criei um mock visual na tela 
+                // para podermos testar o botão de exclusão que acabamos de programar.
+                const livros = ref([
+                    { id: 1, titulo: "Linguagem C: Completa e Descomplicada", autor: "André Backes", ano: 2012 },
+                    { id: 2, titulo: "Código Limpo", autor: "Robert C. Martin", ano: 2008 },
+                    { id: 3, titulo: "O Programador Pragmático", autor: "Andrew Hunt", ano: 1999 }
+                ]);
+
+                const doarLivro = async (id) => {
+                    try {
+                        // Dispara a requisição HTTP DELETE para o nosso servidor em C
+                        const response = await fetch(`http://localhost:8000/api/livros?id=${id}`, {
+                            method: 'DELETE'
+                        });
+                        
+                        // Pega a resposta em formato JSON enviada pelo cJSON/Mongoose
+                        const data = await response.json();
+
+                        if (response.ok && data.sucesso) {
+                            sucesso.value = true;
+                            mensagem.value = `Sucesso! O Back-end confirmou: ${data.mensagem}`;
+                            
+                            // Remove o livro visualmente da tela com Vue.js
+                            livros.value = livros.value.filter(l => l.id !== id);
+                        } else {
+                            sucesso.value = false;
+                            mensagem.value = `Aviso do C: ${data.mensagem} (ID ${id} existe no banco de dados?)`;
+                        }
+                    } catch (error) {
+                        sucesso.value = false;
+                        mensagem.value = "Erro fatal: Não foi possível conectar ao servidor em C. Ele está rodando?";
+                        console.error(error);
+                    }
+                    
+                    // Apaga a mensagem após 5 segundos
+                    setTimeout(() => mensagem.value = '', 5000);
+                };
+
+                return { livros, doarLivro, mensagem, sucesso }
+            }
+        }).mount('#app')
+    </script>
+</body>
+</html>
