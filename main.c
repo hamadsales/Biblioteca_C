@@ -10,15 +10,11 @@
 #include "sqlite3.h"
 #include "mongoose.h" 
 
-// --- CORREÇÃO DEFINITIVA PARA O WINDOWS ---
+//bloco adicionado para resolver o problema no terminal do windowss ao compilar o código
 int fseeko(FILE *stream, long offset, int whence) {
     return fseek(stream, offset, whence);
 }
-// ------------------------------------------
 
-/* =========================================
-   1. MODELAGEM DOS DADOS
-   ========================================= */
 typedef struct {
     int id;
     char title[150];
@@ -29,9 +25,7 @@ typedef struct {
 
 sqlite3 *db; 
 
-/* =========================================
-   2. BANCO DE DADOS E LÓGICA
-   ========================================= */
+//banco de dados, conexão
 sqlite3* init_database(const char* db_name) {
     sqlite3 *local_db;
     sqlite3_open(db_name, &local_db);
@@ -42,7 +36,7 @@ sqlite3* init_database(const char* db_name) {
     return local_db;
 }
 
-// NOVO: Função Seeder para popular o banco de dados automaticamente
+//automatiza o banco de dados
 void seed_database(sqlite3 *local_db) {
     sqlite3_stmt *stmt;
     int count = 0;
@@ -76,9 +70,7 @@ int donate_book(sqlite3 *db, int book_id) {
     return (sqlite3_changes(db) > 0) ? 1 : 0;
 }
 
-/* =========================================
-   3. SERVIDOR HTTP / API REST
-   ========================================= */
+//sevidor
 static void api_handler(struct mg_connection *c, int ev, void *ev_data) {
     if (ev == MG_EV_HTTP_MSG) {
         struct mg_http_message *hm = (struct mg_http_message *) ev_data;
@@ -118,7 +110,7 @@ static void api_handler(struct mg_connection *c, int ev, void *ev_data) {
 int main() {
     db = init_database("biblioteca.db");
     
-    // Chama o seeder para garantir que temos dados!
+    // Chama o seeder para garantir que tem livros
     seed_database(db);
     
     struct mg_mgr mgr;
